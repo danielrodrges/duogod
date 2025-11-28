@@ -65,11 +65,11 @@ export default function Home() {
   const [gems, setGems] = useState(450);
   const [selectedTab, setSelectedTab] = useState<"learn" | "practice" | "leaderboard" | "profile">("learn");
 
-  // Unidades com trilhas múltiplas
+  // Unidades com trilhas múltiplas - TÍTULOS BÍBLICOS
   const units: Unit[] = [
     {
       id: 1,
-      title: "Unidade 1",
+      title: "A Criação",
       description: "Gênesis - No Princípio",
       color: "#58CC02",
       lessons: [
@@ -124,7 +124,7 @@ export default function Home() {
         {
           id: 5,
           title: "Revisão",
-          description: "Teste da Unidade 1",
+          description: "Teste da Criação",
           progress: 100,
           isLocked: false,
           isCompleted: true,
@@ -137,8 +137,8 @@ export default function Home() {
     },
     {
       id: 2,
-      title: "Unidade 2",
-      description: "O Dilúvio e a Aliança",
+      title: "O Dilúvio",
+      description: "Noé e a Arca",
       color: "#1CB0F6",
       lessons: [
         {
@@ -204,7 +204,7 @@ export default function Home() {
         {
           id: 11,
           title: "Revisão",
-          description: "Teste da Unidade 2",
+          description: "Teste do Dilúvio",
           progress: 0,
           isLocked: true,
           isCompleted: false,
@@ -217,8 +217,8 @@ export default function Home() {
     },
     {
       id: 3,
-      title: "Unidade 3",
-      description: "Abraão - Pai da Fé",
+      title: "Abraão",
+      description: "O Pai da Fé",
       color: "#FFD700",
       lessons: [
         {
@@ -285,8 +285,8 @@ export default function Home() {
     },
     {
       id: 4,
-      title: "Unidade 4",
-      description: "José - Dos Sonhos ao Trono",
+      title: "José no Egito",
+      description: "Dos Sonhos ao Trono",
       color: "#CE82FF",
       lessons: [
         {
@@ -460,6 +460,18 @@ export default function Home() {
     }
   };
 
+  // Função para calcular posição X no mobile (caminho em S)
+  const getMobilePositionX = (index: number, total: number) => {
+    // Cria um caminho em S suave
+    const progress = index / (total - 1);
+    const amplitude = 60; // Amplitude da curva (pixels)
+    
+    // Fórmula para criar S suave: usa seno com frequência ajustada
+    const x = Math.sin(progress * Math.PI * 2) * amplitude;
+    
+    return x;
+  };
+
   const renderLearnTab = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -535,7 +547,7 @@ export default function Home() {
 
                 {/* Learning Path */}
                 <div className="relative space-y-6">
-                  {/* Linha conectora vertical - estilo caminho */}
+                  {/* Linha conectora - Desktop (caminho com curvas) */}
                   <svg 
                     className="absolute left-1/2 top-0 -translate-x-1/2 hidden sm:block pointer-events-none"
                     style={{ 
@@ -576,10 +588,54 @@ export default function Home() {
                     })}
                   </svg>
 
+                  {/* Linha conectora - Mobile (caminho em S) */}
+                  <svg 
+                    className="absolute left-1/2 top-0 -translate-x-1/2 sm:hidden pointer-events-none"
+                    style={{ 
+                      height: `${unit.lessons.length * 120}px`,
+                      width: '200px'
+                    }}
+                  >
+                    <defs>
+                      <linearGradient id={`gradient-mobile-${unit.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style={{ stopColor: unit.color, stopOpacity: 0.3 }} />
+                        <stop offset="50%" style={{ stopColor: unit.color, stopOpacity: 0.5 }} />
+                        <stop offset="100%" style={{ stopColor: unit.color, stopOpacity: 0.3 }} />
+                      </linearGradient>
+                    </defs>
+                    
+                    {unit.lessons.map((lesson, index) => {
+                      if (index === unit.lessons.length - 1) return null;
+                      
+                      const startX = 100 + getMobilePositionX(index, unit.lessons.length);
+                      const endX = 100 + getMobilePositionX(index + 1, unit.lessons.length);
+                      
+                      const startY = index * 120 + 60;
+                      const endY = (index + 1) * 120 + 60;
+                      
+                      const midY = (startY + endY) / 2;
+                      const controlX = (startX + endX) / 2;
+                      
+                      return (
+                        <path
+                          key={`path-mobile-${lesson.id}`}
+                          d={`M ${startX} ${startY} Q ${controlX} ${midY}, ${endX} ${endY}`}
+                          stroke={`url(#gradient-mobile-${unit.id})`}
+                          strokeWidth="4"
+                          fill="none"
+                          strokeLinecap="round"
+                        />
+                      );
+                    })}
+                  </svg>
+
                   {unit.lessons.map((lesson, index) => {
                     const Icon = getIconForType(lesson.type);
                     const color = getColorForType(lesson.type, lesson.isCompleted, lesson.isLocked);
                     const positionClass = getPositionClass(lesson.position);
+                    
+                    // Posição mobile em S
+                    const mobileX = getMobilePositionX(index, unit.lessons.length);
 
                     return (
                       <div 
@@ -588,7 +644,12 @@ export default function Home() {
                         style={{ minHeight: '120px' }}
                       >
                         {/* Lesson Node */}
-                        <div className={`relative transition-all duration-300 ${positionClass}`}>
+                        <div 
+                          className={`relative transition-all duration-300 ${positionClass}`}
+                          style={{
+                            transform: window.innerWidth < 640 ? `translateX(${mobileX}px)` : undefined
+                          }}
+                        >
                           <button
                             disabled={lesson.isLocked}
                             className={`relative group ${lesson.isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
