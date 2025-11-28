@@ -56,13 +56,6 @@ interface Unit {
   lessons: Lesson[];
   color: string;
 }
-interface ActivityQuestion {
-  id: number;
-  prompt: string;          // Enunciado
-  options: string[];       // Opções de resposta
-  correctIndex: number;    // Índice da resposta correta em options[]
-  explanation?: string;    // Explicação opcional
-}
 
 export default function Home() {
   const [streak, setStreak] = useState(7);
@@ -71,37 +64,10 @@ export default function Home() {
   const [hearts, setHearts] = useState(5);
   const [gems, setGems] = useState(450);
   const [selectedTab, setSelectedTab] = useState<"learn" | "practice" | "leaderboard" | "profile">("learn");
-  export default function Home() {
-  const [streak, setStreak] = useState(7);
-  const [totalXP, setTotalXP] = useState(1250);
-  const [level, setLevel] = useState(5);
-  const [hearts, setHearts] = useState(5);
-  const [gems, setGems] = useState(450);
-  const [selectedTab, setSelectedTab] = useState<"learn" | "practice" | "leaderboard" | "profile">("learn");
-
-  // 🔹 Novo estado para o "jogo" da lição
-  const [activeUnitId, setActiveUnitId] = useState<number | null>(null);
-  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-  const [activityStep, setActivityStep] = useState(0);
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
-  const [activityResult, setActivityResult] = useState<"correct" | "wrong" | null>(null);
-
-  // Unidades com trilhas múltiplas
-  const [units, setUnits] = useState<Unit[]>([
-    ...
-  ]);
-
 
   // Unidades com trilhas múltiplas - TÍTULOS BÍBLICOS
-  const [units, setUnits] = useState<Unit[]>([
-  {
-    id: 1,
-    title: "Unidade 1",
-    ...
-  },
-  ...
-]);
-
+  const units: Unit[] = [
+    {
       id: 1,
       title: "A Criação",
       description: "Gênesis - No Princípio",
@@ -374,55 +340,6 @@ export default function Home() {
       ]
     }
   ];
-// Mapeia cada lição para um conjunto de perguntas
-// chave: "unitId-lessonId"
-const lessonActivities: Record<string, ActivityQuestion[]> = {
-  "1-1": [
-    {
-      id: 1,
-      prompt: "Quantos dias Deus levou para criar os céus e a terra?",
-      options: ["3 dias", "5 dias", "6 dias", "7 dias"],
-      correctIndex: 2,
-      explanation: "Gênesis descreve a criação em 6 dias, e Deus descansa no sétimo."
-    },
-    {
-      id: 2,
-      prompt: "Qual foi a primeira frase registrada de Deus na criação?",
-      options: [
-        "Haja luz",
-        "Façamos o homem",
-        "Produza a terra relva",
-        "Multiplicai-vos"
-      ],
-      correctIndex: 0,
-      explanation: "\"Haja luz\" é a primeira fala divina registrada em Gênesis 1."
-    }
-  ],
-  "1-2": [
-    {
-      id: 1,
-      prompt: "Em qual jardim Adão e Eva viviam?",
-      options: ["Jardim de Canaã", "Jardim do Éden", "Jardim de Israel", "Jardim de Jerusalém"],
-      correctIndex: 1
-    },
-    {
-      id: 2,
-      prompt: "Qual foi a consequência imediata do pecado de Adão e Eva?",
-      options: [
-        "Foram para o Egito",
-        "Foram coroados reis",
-        "Perderam a inocência e se esconderam de Deus",
-        "Construíram uma torre"
-      ],
-      correctIndex: 2
-    }
-  ],
-  // 👉 aqui você pode ir adicionando mais:
-  // "1-3": [...],
-  // "2-1": [...], etc.
-};
-
-const getLessonKey = (unitId: number, lessonId: number) => `${unitId}-${lessonId}`;
 
   const dailyQuests = [
     { 
@@ -507,203 +424,6 @@ const getLessonKey = (unitId: number, lessonId: number) => `${unitId}-${lessonId
     { title: "Estudioso", description: "Estude por 30 dias seguidos", icon: Award, unlocked: false, color: "#58CC02" },
     { title: "Top 3", description: "Fique entre os 3 primeiros do ranking", icon: Medal, unlocked: false, color: "#FF8C00" },
   ];
-const startLesson = (unitId: number, lesson: Lesson) => {
-  const key = getLessonKey(unitId, lesson.id);
-  const questions = lessonActivities[key];
-
-  if (!questions || questions.length === 0 || lesson.isLocked) {
-    return;
-  }
-
-  setActiveUnitId(unitId);
-  setActiveLesson(lesson);
-  setActivityStep(0);
-  setSelectedOptionIndex(null);
-  setActivityResult(null);
-};
-const renderActiveLesson = () => {
-  if (!activeLesson || activeUnitId === null) return null;
-
-  const key = getLessonKey(activeUnitId, activeLesson.id);
-  const questions = lessonActivities[key];
-  const currentQuestion = questions?.[activityStep];
-  if (!currentQuestion) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
-      <div className="w-full max-w-xl bg-white rounded-3xl p-6 shadow-2xl">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-xs font-semibold text-gray-400">
-              Unidade {activeUnitId} · Lição {activeLesson.id}
-            </p>
-            <h2 className="text-xl font-bold text-gray-900">
-              {activeLesson.title}
-            </h2>
-          </div>
-          <button
-            onClick={closeLesson}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="mb-4">
-          <p className="text-sm text-gray-500 mb-1">
-            Pergunta {activityStep + 1} de {questions.length}
-          </p>
-          <p className="text-lg font-semibold text-gray-900">
-            {currentQuestion.prompt}
-          </p>
-        </div>
-
-        <div className="space-y-2 mb-4">
-          {currentQuestion.options.map((option, index) => {
-            const isSelected = selectedOptionIndex === index;
-            const isCorrectOption = index === currentQuestion.correctIndex;
-
-            let border = "border-gray-200";
-            let bg = "bg-white";
-
-            if (activityResult && isSelected) {
-              if (activityResult === "correct") {
-                border = "border-green-500";
-                bg = "bg-green-50";
-              } else {
-                border = "border-red-500";
-                bg = "bg-red-50";
-              }
-            } else if (activityResult && isCorrectOption) {
-              border = "border-green-500";
-              bg = "bg-green-50";
-            }
-
-            return (
-              <button
-                key={index}
-                onClick={() => !activityResult && handleSelectOption(index)}
-                className={`w-full text-left px-4 py-3 rounded-xl border ${border} ${bg} transition-all`}
-              >
-                <span className="text-sm text-gray-800">{option}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {activityResult && currentQuestion.explanation && (
-          <div className="mb-4 p-3 rounded-xl bg-gray-50 text-sm text-gray-700">
-            {currentQuestion.explanation}
-          </div>
-        )}
-
-        <div className="flex justify-between items-center">
-          {activityResult === "correct" && (
-            <div className="flex items-center gap-2 text-green-600 text-sm font-semibold">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Correto! +XP</span>
-            </div>
-          )}
-          {activityResult === "wrong" && (
-            <div className="flex items-center gap-2 text-red-600 text-sm font-semibold">
-              <XCircle className="w-4 h-4" />
-              <span>Resposta incorreta</span>
-            </div>
-          )}
-
-          <button
-            onClick={goToNextQuestion}
-            disabled={!activityResult}
-            className={`ml-auto px-4 py-2 rounded-xl text-sm font-semibold ${
-              activityResult
-                ? "bg-[#58CC02] text-white hover:bg-[#46a601]"
-                : "bg-gray-200 text-gray-500 cursor-not-allowed"
-            }`}
-          >
-            {activityStep === questions.length - 1
-              ? "Concluir lição"
-              : "Próxima pergunta"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const handleSelectOption = (index: number) => {
-  if (!activeLesson || activeUnitId === null) return;
-
-  const key = getLessonKey(activeUnitId, activeLesson.id);
-  const questions = lessonActivities[key];
-  const currentQuestion = questions?.[activityStep];
-  if (!currentQuestion) return;
-
-  setSelectedOptionIndex(index);
-
-  const isCorrect = index === currentQuestion.correctIndex;
-  setActivityResult(isCorrect ? "correct" : "wrong");
-
-  if (isCorrect) {
-    // XP simples: soma XP da lição a cada questão certa
-    setTotalXP((prev) => prev + Math.round(activeLesson.xp / questions.length));
-  } else {
-    // Se quiser, pode descontar coração
-    setHearts((prev) => Math.max(prev - 1, 0));
-  }
-};
-
-const goToNextQuestion = () => {
-  if (!activeLesson || activeUnitId === null) return;
-
-  const key = getLessonKey(activeUnitId, activeLesson.id);
-  const questions = lessonActivities[key];
-  if (!questions) return;
-
-  if (activityStep < questions.length - 1) {
-    setActivityStep((prev) => prev + 1);
-    setSelectedOptionIndex(null);
-    setActivityResult(null);
-  } else {
-    // Fim da lição → marca como concluída e destrava a próxima
-    setUnits((prevUnits) =>
-      prevUnits.map((unit) => {
-        if (unit.id !== activeUnitId) return unit;
-
-        const updatedLessons = unit.lessons.map((lesson, idx) => {
-          if (lesson.id === activeLesson.id) {
-            return { ...lesson, isCompleted: true, progress: 100 };
-          }
-
-          // Destravar a próxima lição se essa foi concluída
-          const currentIndex = unit.lessons.findIndex((l) => l.id === activeLesson.id);
-          const nextLesson = unit.lessons[currentIndex + 1];
-          if (nextLesson && lesson.id === nextLesson.id && lesson.isLocked) {
-            return { ...lesson, isLocked: false };
-          }
-
-          return lesson;
-        });
-
-        return { ...unit, lessons: updatedLessons };
-      })
-    );
-
-    // Limpa estado do player
-    setActiveLesson(null);
-    setActiveUnitId(null);
-    setActivityStep(0);
-    setSelectedOptionIndex(null);
-    setActivityResult(null);
-  }
-};
-
-const closeLesson = () => {
-  setActiveLesson(null);
-  setActiveUnitId(null);
-  setActivityStep(0);
-  setSelectedOptionIndex(null);
-  setActivityResult(null);
-};
 
   const getIconForType = (type: string) => {
     switch(type) {
@@ -931,13 +651,9 @@ const closeLesson = () => {
                           }}
                         >
                           <button
-  disabled={lesson.isLocked}
-  onClick={!lesson.isLocked ? () => startLesson(unit.id, lesson) : undefined}
-  className={`relative group ${lesson.isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
->
-  ...
-</button>
-
+                            disabled={lesson.isLocked}
+                            className={`relative group ${lesson.isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
+                          >
                             {/* Icon Circle - Menor e mais clean */}
                             <div 
                               className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-lg relative z-10 transition-all duration-300 border-4 border-white ${!lesson.isLocked && 'group-hover:shadow-xl'}`}
@@ -1408,7 +1124,6 @@ const closeLesson = () => {
         {selectedTab === "leaderboard" && renderLeaderboardTab()}
         {selectedTab === "profile" && renderProfileTab()}
       </main>
-{renderActiveLesson()}
 
       {/* Bottom Navigation - Estilo Duolingo */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/98 backdrop-blur-md border-t-2 border-gray-200 lg:hidden z-50 shadow-lg">
