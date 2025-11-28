@@ -460,14 +460,15 @@ export default function Home() {
     }
   };
 
-  // Função para calcular posição X no mobile (caminho em S)
+  // Função para calcular posição X no mobile (caminho em S suave - MENOS CURVADO)
   const getMobilePositionX = (index: number, total: number) => {
-    // Cria um caminho em S suave
+    // Cria um caminho em S mais suave e menos curvado
     const progress = index / (total - 1);
-    const amplitude = 60; // Amplitude da curva (pixels)
+    const amplitude = 50; // Reduzido de 60 para 50 (menos amplitude)
     
-    // Fórmula para criar S suave: usa seno com frequência ajustada
-    const x = Math.sin(progress * Math.PI * 2) * amplitude;
+    // Fórmula para criar S suave: usa seno com frequência REDUZIDA para menos curvatura
+    // Mudado de Math.PI * 2 para Math.PI * 1.2 (muito menos curvado)
+    const x = Math.sin(progress * Math.PI * 1.2) * amplitude;
     
     return x;
   };
@@ -588,7 +589,7 @@ export default function Home() {
                     })}
                   </svg>
 
-                  {/* Linha conectora - Mobile (caminho em S) */}
+                  {/* Linha conectora - Mobile (caminho em S SUAVE) */}
                   <svg 
                     className="absolute left-1/2 top-0 -translate-x-1/2 sm:hidden pointer-events-none"
                     style={{ 
@@ -634,7 +635,7 @@ export default function Home() {
                     const color = getColorForType(lesson.type, lesson.isCompleted, lesson.isLocked);
                     const positionClass = getPositionClass(lesson.position);
                     
-                    // Posição mobile em S
+                    // Posição mobile em S suave
                     const mobileX = getMobilePositionX(index, unit.lessons.length);
 
                     return (
